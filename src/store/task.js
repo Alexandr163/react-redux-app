@@ -31,10 +31,17 @@ const taskSlice = createSlice({
         taskRequestFailed(state, action) {
             state.isLoading = false;
         },
+        add(state, action) {
+            state.entities.push({
+                id: Date.now(),
+                title: action.payload.title,
+                completed: action.payload.completed,
+            });
+        }
     },
 });
 const { actions, reducer: taskReducer } = taskSlice;
-const { update, remove, recived, taskRequested, taskRequestFailed } = actions;
+const { update, remove, recived, taskRequested, taskRequestFailed, add } = actions;
 
 export const loadTasks = () => async (dispatch) => {
     dispatch(taskRequested());
@@ -50,6 +57,16 @@ export const loadTasks = () => async (dispatch) => {
 export const completeTask = (id) => (dispatch, getState) => {
     dispatch(update({ id, completed: true }));
 };
+
+export const createTask = (title, completed) => async (dispatch) => {
+    try {
+        const data = await todosService.create({ title, completed});
+        dispatch(add(data))
+    } catch (error) {
+        dispatch(taskRequestFailed())
+        dispatch(setError(error.message))
+    }
+}
 
 export function titleChanged(id) {
     return update({ id, title: `New title for ${id}` });
